@@ -45,9 +45,6 @@ def Repeat(x):
                 repeated.append(x[i])
     return repeated
 
-def konvertor2dna1d(x, y, n):
-    return x * n + y
-
 def konvertor1dna2d(cislo, n):
     return cislo // n, cislo % n
 

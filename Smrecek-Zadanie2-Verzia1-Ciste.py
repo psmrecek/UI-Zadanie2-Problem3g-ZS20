@@ -8,41 +8,47 @@
 # -----------------------------------------------------------
 
 from pohyby import *
-
-def zaciatokFunkcie(funkcia, zac):
-    '''
-    Pomocna debuggovacia funkcia ktora vypise ktora funkcia bola prave spustena a ukoncena.
-
-    :param funkcia: nazov funkcie
-    :param zac: boolean ci zacina alebo konci
-    :return:
-    '''
-    text = ""
-    if zac == True:
-        text = "# Zaciatok funkcie {} #".format(funkcia)
-    else:
-        text = "# Koniec funkcie {} #".format(funkcia)
-
-    ram = "#" * (len(text))
-
-    print(ram)
-    print(text)
-    print(ram)
-
-def konvertor2dna1d(x, y, n):
-    return x * n + y
+import random
 
 def pocetMoznostiPohybu(x, y, n, navstivene):
+    '''
+    Pomocna funkcia pre zratanie poctu moznosti pohybu z daneho policka
+
+    :param x: suradnica x
+    :param y: suradnica y
+    :param n: rozmer sachovnice
+    :param navstivene: pole booleanov obsahujuce informacie o navstivenych polickach
+    :return: pocet moznosti pohybu z aktualneho policka na este nenavstivene policka
+    '''
+
     moznosti = [moznostVpravo1hore2, moznostVpravo1dolu2, moznostVpravo2hore1, moznostVpravo2dolu1,
                 moznostVlavo1hore2, moznostVlavo1dolu2, moznostVlavo2hore1, moznostVlavo2dolu1]
     return sum([moznost(x, y, n, navstivene) for moznost in moznosti])
 
 def najdiSuradniceMoznostiPohybu(x, y, n, navstivene):
+    '''
+    Pomocna funkcia hladajuca suradnice moznosti pohybu z daneho policka
+
+    :param x: suradnica x
+    :param y: suradnica y
+    :param n: rozmer sachovnice
+    :param navstivene: pole booleanov obsahujuce informacie o navstivenych polickach
+    :return: pole suradnic dostupnych z aktualneho policka
+    '''
+
     moznosti = [suradniceVpravo1hore2, suradniceVpravo1dolu2, suradniceVpravo2hore1, suradniceVpravo2dolu1,
                 suradniceVlavo1hore2, suradniceVlavo1dolu2, suradniceVlavo2hore1, suradniceVlavo2dolu1]
     return [moznost(x, y, n, navstivene) for moznost in moznosti if moznost(x, y, n, navstivene) != None]
 
 def vytvorSachovnicu(n, navstivene):
+    '''
+    Pomocna funkcia ktora vygeneruje graf so zoznamom susednosti pouzivany na kontrolu spravnosti riesenia
+
+    :param n: rozmer sachovnice
+    :param navstivene: pole booleanov obsahujuce informacie o navstivenych polickach
+    :return: graf so zoznamom susednosti
+    '''
+
     sachovnica = []
     for x in range(n):
         for y in range(n):
@@ -50,6 +56,13 @@ def vytvorSachovnicu(n, navstivene):
     return sachovnica
 
 def vizualizuj(n, cesta):
+    '''
+    Funkcia na vykreslenie riesenia
+
+    :param n: rozmer sachovnice
+    :param cesta: pole suradnic reprezentujuce postupny pohyb kona po sachovnici
+    '''
+
     for x in range(n):
         if x == 0:
             print("### | ", end="")
@@ -64,10 +77,19 @@ def vizualizuj(n, cesta):
                 print("{:03d} ".format(cesta.index((x, y)) + 1), end="")
             else:
                 print("{} ".format("###"), end="")
-            minule = (x, y)
         print()
 
-def skontroluj(n, cesta, sachovnica, vypisy = True):
+def skontroluj(n, cesta, vypisy = True):
+    '''
+    Tentovacia funkcia skontroluje, ci je sachovnica vyplnena iba legalnymi heuristickymi tahmi kona a vypise
+    informaciu, ci je sachovnica kompletna
+    :param n: rozmer sachovnice
+    :param cesta: pole suradnic reprezentujuce postupny pohyb kona po sachovnici
+    :param vypisy: True pre postupne vypisy, False pre tichy rezim
+    :return: 3 booleany reprezentujuce ci je sachovnica kompletne vyplnena, legalne vyplnena, heuristicky vyplnena
+    '''
+
+    sachovnica = vytvorSachovnicu(n, [[False for i in range(n)] for i in range(n)])
     minule = None
     korektna = True
     heuristicka = True
@@ -78,25 +100,26 @@ def skontroluj(n, cesta, sachovnica, vypisy = True):
     for suradnice in cesta:
         if minule is not None and suradnice not in sachovnica[konvertor2dna1d(minule[0], minule[1], n)]:
             korektna = False
-            vypis += "Z {},{} na {},{} bol nelegalny tah\n".format(minule[0], minule[1], suradnice[0], suradnice[1])
+            vypis += "Z {:02d},{:02d} na {:02d},{:02d} bol nelegalny tah\n".format(minule[0], minule[1], suradnice[0], suradnice[1])
         if minule is not None:
             dalsie = heuristika(minule[0], minule[1], n, navstivene)
             if dalsie != [] and suradnice not in dalsie:
                 heuristicka = False
-                vypis += "Z {},{} na {},{} bol neheuristicky tah\n".format(minule[0], minule[1], suradnice[0], suradnice[1])
+                vypis += "Z {:02d},{:02d} na {:02d},{:02d} bol neheuristicky tah\n".format(minule[0], minule[1], suradnice[0], suradnice[1])
                 vypis += "Vyber mal byt nad mnozinou {}\n".format(dalsie)
         minule = suradnice
         navstivene[suradnice[0]][suradnice[1]] = True
 
-    if heuristicka:
-        vypis += "Sachovnica je heuristicky vyplnena\n"
-    else:
-        vypis += "----------------- Sachovnica nie je heuristicky vyplnena\n"
+    if len(cesta) > 0:
+        if heuristicka:
+            vypis += "Sachovnica je heuristicky vyplnena\n"
+        else:
+            vypis += "----------------- Sachovnica nie je heuristicky vyplnena\n"
 
-    if korektna:
-        vypis += "Sachovnica je vyplnena legalnymi tahmi\n"
-    else:
-        vypis += "----------------- Sachovnica nie je vyplnena legalnymi tahmi\n"
+        if korektna:
+            vypis += "Sachovnica je vyplnena legalnymi tahmi\n"
+        else:
+            vypis += "----------------- Sachovnica nie je vyplnena legalnymi tahmi\n"
 
     if len(cesta) == n ** 2:
         vypis += "Sachovnica je kompletna\n"
@@ -104,12 +127,22 @@ def skontroluj(n, cesta, sachovnica, vypisy = True):
             print(vypis, end="")
         return True, korektna, heuristicka
     else:
-        vypis += "----------------- Sachovnica nie je kompletna\n"
+        vypis += "Sachovnica nie je kompletna, pretoze riesenie bud nebolo najdene v stanovenom pocte krokov, alebo neexistuje\n"
         if vypisy:
             print(vypis, end="")
         return False, korektna, heuristicka
 
 def heuristika(x, y, n, navstivene):
+    '''
+    Funkcia vyberajuca nasledujuce suradnice skoku kona. Skonstruovana podla heuristiky "Warnsdorff's rule".
+
+    :param x: suradnica x
+    :param y: suradnica y
+    :param n: rozmer sachovnice
+    :param navstivene: pole booleanov obsahujuce informacie o navstivenych polickach
+    :return: pole suradnic s minimalnym poctom nasledujucich tahov
+    '''
+
     suradnice = najdiSuradniceMoznostiPohybu(x, y, n, navstivene)
     minHodnota = 9
     minSuradnice = []
@@ -120,36 +153,77 @@ def heuristika(x, y, n, navstivene):
             minHodnota = moznosti
         elif moznosti == minHodnota:
             minSuradnice.append(sur)
-    # if minSuradnice != []:
+
     return minSuradnice
 
 pocitadlo = 0
+# Globalna premenna ratajuca pocet spusteni funkcie rekurzivneho hladania
+
 navrat = []
+# Navratove pole ziskane z funkcie rekurzivneho hladania
 
 def DFSrekurzia(n, pociatocneX, pociatocneY, navstivene, cesta, maxKrokov):
+    '''
+    Rekurzivna funkcia hladania do hlbky. Hladanie prebieha dovtedy, dokym nie je najdena cesta, nie su prehladane
+    vsetky moznosti, alebo nie je prekroceny maximalny pocet krokov hladania.
+
+    :param n: rozmer sachovnice
+    :param pociatocneX: sucasna suradnica x
+    :param pociatocneY: sucasna suradnica y
+    :param navstivene: pole booleanov obsahujuce informacie o navstivenych polickach
+    :param cesta: aktualne najdena cesta
+    :param maxKrokov: maximalny pocet krokov hladania ktory sa nesmie prekrocit
+    :return: True ak je cesta najdena alebo je prekroceny pocet krokov, False inak
+    '''
+
     global pocitadlo
     pocitadlo += 1
     if pocitadlo == maxKrokov:
+        # Ak je prektoceny maximalny pocet krokov, funkcia sa rekurzivne vracia
         return True
 
     navstivene[pociatocneX][pociatocneY] = True
+    # Sucasne policko kde sa nachadza kon je oznacene za navstivene
+
     cesta.append((pociatocneX, pociatocneY))
+    # Sucasne policko sa pridava do pola reprezentujuceho sucasnu cestu kona
+
     susedne = heuristika(pociatocneX, pociatocneY, n, navstivene)
+    # Vytvorenie pola moznosti skoku podla heuristiky
 
     if len(cesta) == n ** 2:
+        # Ak bola cesta najdena cela, funkcia sa rekurzivne vracia
+        # Globalna premenna s najdenou cestou je nastavena na sucasnu cestu
         global navrat
         navrat = cesta
         return True
 
     for policko in susedne:
+        # Cyklus prehladavania heuristicky susednych policok (policok, ktore maju rovnaky pocet nasledujucich tahov)
         if not navstivene[policko[0]][policko[1]]:
+            # Kontrola, ci policko este nebolo navstivene, pretoze hoci pole susednosti zahrnalo len nenavstivene
+            # policka v case jeho vytvarania, stav ich navstivenia sa mohol v rekurzii zmenit
             if DFSrekurzia(n, policko[0], policko[1], navstivene, cesta, maxKrokov):
+                # Rekurzivne volanie funkcie prehladavania do hlbky. Ak sa vratila hodnota True, funkcia sa rekurzivne vracia
                 return True
 
     cesta.pop()
     navstivene[pociatocneX][pociatocneY] = False
+    # Sucasne policko bolo prehladane a nevyhovuje. Odobera sa z cesty a nastavuje sa ako neprehladane. Funkcia vracia False
+    return False
 
-def riadic(n, pociatocneX, pociatocneY, maxKrokov):
+def riadicHladania(n, pociatocneX, pociatocneY, maxKrokov):
+    '''
+    Riadiaca funkcia hladania cesty kona. Nastavuje globalne premenne na pociatocne hodnoty pred kazdym hladanim
+    a vracia najdenu cestu.
+
+    :param n: rozmer sachovnice
+    :param pociatocneX: sucasna suradnica x
+    :param pociatocneY: sucasna suradnica y
+    :param maxKrokov: maximalny pocet krokov hladania ktory sa nesmie prekrocit
+    :return: najdena cesta kona po mape reprezentovana polom suradnic
+    '''
+
     navstivene = [[False for i in range(n)] for i in range(n)]
     cesta = []
     global pocitadlo
@@ -160,51 +234,146 @@ def riadic(n, pociatocneX, pociatocneY, maxKrokov):
 
     return navrat
 
+def existuje(n, pociatocneX, pociatocneY):
+    '''
+    Funkcia vypisu oznamujuca, ci ocakavame, ze heuristika z tychto suradnic na sachovnici najde cestu.
+
+    :param n: rozmer sachovnice
+    :param pociatocneX: sucasna suradnica x
+    :param pociatocneY: sucasna suradnica y
+    '''
+    if n == 1:
+        return ("Pre sachovnicu o rozmere 1 je riesnie trivialne")
+    elif n < 5:
+        return ("Pre sachovnice mensie ako 5 riesenie neexistuje, s vynimkou 1")
+    elif n % 2 == 0:
+        return ("Pre parne sachovnice riesenie existuje")
+    elif (pociatocneX + pociatocneY) % 2 == 0:
+        return ("Predpokladame, ze riesenie dosiahnutelne heuristikou existuje")
+    else:
+        return ("Predpokladame, ze riesenie dosiahnutelne heuristikou neexistuje")
+
+def najdiAvypis(n, pociatocneX, pociatocneY, maxKrokov):
+    '''
+    Funkcia vypisu, ktora nad najdenou cestou zavola funkcie na jje kontrolu a vizualizaciu.
+
+    :param n: rozmer sachovnice
+    :param pociatocneX: sucasna suradnica x
+    :param pociatocneY: sucasna suradnica y
+    :param maxKrokov: maximalny pocet krokov hladania ktory sa nesmie prekrocit
+    '''
+
+    print("Sachovnica {}x{} s pociatocnymi bodmi {}, {}:".format(n, n, pociatocneX, pociatocneY))
+    print(existuje(n, pociatocneX, pociatocneY))
+    cesta = riadicHladania(n, pociatocneX, pociatocneY, maxKrokov)
+    vizualizuj(n, cesta)
+    skontroluj(n, cesta)
+    print("-" * 150)
+
+def generujVstupy(n, pocet):
+    '''
+    Funkcia generujuca pozadovany pocet unikatnych suradnic na mape pre potreby kontroly. Ak je pozadovany
+    pocet suradnic vacsi ako celkovy pocet suradnic mapy, funkcia vrati vsetky suradnice mapy. Inak vrati nahodne
+    zoradene pole suradnic.
+
+    :param n: rozmer sachovnice
+    :param pocet: pozadovany pocet unikatnych suradnic
+    :return: set unikatnych suradnic ak je pozadovany pocet mensi ako vsetky suradnice sachovnice, vsetky suradnice sachovnice inak
+    '''
+
+    if pocet >= n ** 2:
+        return [(x, y) for x in range(n) for y in range(n)]
+
+    random.seed()
+    n -= 1
+
+    unikatnyZoznam = {(random.randint(0, n), random.randint(0, n))}
+    while len(unikatnyZoznam) != pocet:
+        unikatnyZoznam.add((random.randint(0, n), random.randint(0, n)))
+    return unikatnyZoznam
+
 def otestujVsetky(n, maxKrokov):
+    '''
+    Testovacia funkcia ktora otestuje ci existuje heuristicka cesta pre kona zo vsetkych suradnic mapy.
+
+    :param n: rozmer sachovnice
+    :param maxKrokov: maximalny pocet krokov hladania ktory sa nesmie prekrocit
+    '''
+
     navstivene = [[False for i in range(n)] for i in range(n)]
-    sachovnica = vytvorSachovnicu(n, navstivene)
 
     pocetZlych = 0
     pocetNeexistujucich = 0
     for x in range(n):
         for y in range(n):
-            navrat = riadic(n, x, y, maxKrokov)
-            # vizualizuj(n, navrat)
-            # print(len(navrat))
-            # print(navrat)
+            navrat = riadicHladania(n, x, y, maxKrokov)
             if navrat != []:
-                # print(navrat)
-                # vizualizuj(n, navrat)
-                kompKor = skontroluj(n, navrat, sachovnica, False)
+                kompKor = skontroluj(n, navrat, False)
                 if sum(kompKor) != 3:
-                    print("Zaciatok {},{} - Sachovnica nie je v poriadku - Vizualizujem".format(x, y))
+                    print("Zaciatok {:02d},{:02d} - Sachovnica nie je v poriadku - Vizualizujem".format(x, y))
                     print(navrat)
                     print(len(navrat))
-                    skontroluj(n, navrat, sachovnica, True)
+                    skontroluj(n, navrat, True)
                     vizualizuj(n, navrat)
                     pocetZlych += 1
+                else:
+                    print("Zaciatok {:02d},{:02d} - Sachovnica bola najdena a spravne vygenerovana".format(x, y))
             else:
                 pocetNeexistujucich += 1
-                print("Pre n = {} neexistuje riesenie zacinajuce na {}, {}".format(n, x, y))
+                print("Pre n = {} riesenie zacinajuce na {:02d}, {:02d} neexistuje alebo nebolo najdene v zadanom pocte krokov ".format(n, x, y))
 
     print("\nPocet zlych je", pocetZlych)
     print("Pocet neexistujucich rieseni je ", pocetNeexistujucich)
     print("Pocet existujucich rieseni je ", n ** 2 - pocetNeexistujucich)
+    print("-" * 150)
 
 def main():
-    # zaciatokFunkcie(main.__name__, True)
+    '''
+    Pouzivatelske rozhranie. Menu programu.
 
-    # n = int(input("Zadaj n "))
-    # n = 18
+    '''
 
-    # otestujVsetky(n, 20000)
+    print("Zvolte 0 pre ukoncenie programu\nZvolte 1 pre testovanie nahodnych vstupov\nZvolte 2 pre testovanie konkretneho vstupu\nZvolte 3 pre testovanie vsetkych vstupov pre interval rozmerov")
+    program = input()
 
-    for i in range(0, 20):
-        print("Testujem rozmer {} x {}".format(i,i))
-        otestujVsetky(i, 20000)
-        print("-"*100)
+    while program != "0":
+        if program == "1":
+            print("Pre otestovanie a vizualizaciu A nahodnych vstupov sachovnice N x N s maximalnym poctom krokov B v tisicoch zadajte 3 cisla v poradi \"N A B\":")
+            vstup = input().split(" ")
+            n = int(vstup[0])
+            a = int(vstup[1])
+            b = int(vstup[2]) * 1000
+            nahodneSuradnice = generujVstupy(n, a)
+            print("Boli vygenerovane nahodne suradnice", nahodneSuradnice)
+            print("-" * 150)
+            for index, item in enumerate(nahodneSuradnice):
+                print("Vypis", index + 1)
+                najdiAvypis(n, item[0], item[1], b)
+        elif program == "2":
+            print("Pre otestovanie a vizualizaciu jedneho konkretneho rozmeru zadajte zadajte vstup vo formate \"N pociatocneX pociatocneY maximalnyPocetKrokovVtisicoch\":")
+            vstup = input().split(" ")
+            n = int(vstup[0])
+            pociatocneX = int(vstup[1])
+            pociatocneY = int(vstup[2])
+            maxKrokov = int(vstup[3]) * 1000
+            najdiAvypis(n, pociatocneX, pociatocneY, maxKrokov)
+        elif program == "3":
+            print("Pre otestovanie existencie cesty pre vsetky suradnice daneho rozmeru zadajte \"pociatocneN koncoveN maximalnyPocetKrokovVtisicoch\":")
+            vstup = input().split(" ")
+            pociatocneN = int(vstup[0])
+            koncoveN = int(vstup[1])
+            maxKrokov = int(vstup[2]) * 1000
+            for i in range(pociatocneN, koncoveN + 1):
+                print("Testujem rozmer {} x {}".format(i, i))
+                otestujVsetky(i, maxKrokov)
+        else:
+            print("Nespravna volba")
 
-    # zaciatokFunkcie(main.__name__, False)
+        print(
+            "Zvolte 0 pre ukoncenie programu\nZvolte 1 pre testovanie nahodnych vstupov\nZvolte 2 pre testovanie konkretneho vstupu\nZvolte 3 pre testovanie vsetkych vstupov pre interval rozmerov")
+        program = input()
+
+    print("Koniec programu")
 
 if __name__ == "__main__":
     main()
