@@ -124,7 +124,7 @@ def existuje(n, pociatocneX, pociatocneY):
 
 def najdiAvypis(n, pociatocneX, pociatocneY, maxKrokov):
     '''
-    Funkcia vypisu, ktora nad najdenou cestou zavola funkcie na jje kontrolu a vizualizaciu.
+    Funkcia vypisu, ktora nad jednou cestou zavola funkcie na jej kontrolu a vizualizaciu.
 
     :param n: rozmer sachovnice
     :param pociatocneX: sucasna suradnica x
@@ -163,7 +163,7 @@ def generujVstupy(n, pocet):
 
 def otestujVsetky(n, maxKrokov):
     '''
-    Testovacia funkcia ktora otestuje ci existuje heuristicka cesta pre kona zo vsetkych suradnic mapy.
+    Testovacia funkcia, ktora otestuje, ci existuje heuristicka cesta pre kona zo vsetkych suradnic mapy.
 
     :param n: rozmer sachovnice
     :param maxKrokov: maximalny pocet krokov hladania ktory sa nesmie prekrocit
