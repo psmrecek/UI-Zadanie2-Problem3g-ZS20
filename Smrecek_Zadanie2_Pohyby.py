@@ -1,3 +1,12 @@
+# -----------------------------------------------------------
+# UI - Zadanie 2 - Problem 3 g)
+# ZS 2020
+#
+# Peter Smreček
+# email xsmrecek@stuba.sk
+# AIS ID 103130
+# -----------------------------------------------------------
+
 '''
 Funkcie kontrolujuce ci existuje moznost pohybu danym smerom. Vracaju True alebo False podla smeru pohybu.
 '''

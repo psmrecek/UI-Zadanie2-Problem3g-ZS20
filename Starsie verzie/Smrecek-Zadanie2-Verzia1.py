@@ -7,7 +7,7 @@
 # AIS ID 103130
 # -----------------------------------------------------------
 
-from pohyby import *
+from Smrecek_Zadanie2_Pohyby import *
 
 
 def zaciatokFunkcie(funkcia, zac):
